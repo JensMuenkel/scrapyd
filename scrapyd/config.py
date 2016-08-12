@@ -57,7 +57,13 @@ class Config(object):
 
     def items(self, section, default=None):
         try:
-            return self.cp.items(section)
+            items = self.cp.items(section)
+            itemsBytes=list()
+            for item in items:
+                if isinstance(item[0], str):
+                    byteItem=(item[0].encode('UTF-8'), item[1])
+                    itemsBytes.append(byteItem)
+            return itemsBytes
         except (NoSectionError, NoOptionError):
             if default is not None:
                 return default

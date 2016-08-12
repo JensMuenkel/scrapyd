@@ -34,14 +34,16 @@ class Launcher(Service):
         poller = self.app.getComponent(IPoller)
         poller.next().addCallback(self._spawn_process, slot)
 
+    #TODO: THIS ARE CRITICAL MODIFICATIONS, REALLY CHECK IF TWISTIED SUPPORTS HERE
+    #UNICODE ARGUMENTS
     def _spawn_process(self, message, slot):
-        msg = stringify_dict(message, keys_only=False)
+        msg = message#stringify_dict(message, keys_only=False)
         project = msg['_project']
         args = [sys.executable, '-m', self.runner, 'crawl']
         args += get_crawl_args(msg)
         e = self.app.getComponent(IEnvironment)
         env = e.get_environment(msg, slot)
-        env = stringify_dict(env, keys_only=False)
+        #env = stringify_dict(env, keys_only=False)
         pp = ScrapyProcessProtocol(slot, project, msg['_spider'], \
             msg['_job'], env)
         pp.deferred.addBoth(self._process_finished, slot)

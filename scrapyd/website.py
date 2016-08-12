@@ -22,16 +22,16 @@ class Root(resource.Resource):
         local_items = itemsdir and (urlparse(itemsdir).scheme.lower() in ['', 'file'])
         self.app = app
         self.nodename = config.get('node_name', socket.gethostname())
-        self.putChild('', Home(self, local_items))
+        self.putChild(''.encode('utf_8'), Home(self, local_items))
         if logsdir:
-            self.putChild('logs', static.File(logsdir, 'text/plain'))
+            self.putChild('logs'.encode('utf8'), static.File(logsdir, 'text/plain'))
         if local_items:
-            self.putChild('items', static.File(itemsdir, 'text/plain'))
-        self.putChild('jobs', Jobs(self, local_items))
+            self.putChild('items'.encode('utf8'), static.File(itemsdir, 'text/plain'))
+        self.putChild('jobs'.encode('utf8'), Jobs(self, local_items))
         services = config.items('services', ())
         for servName, servClsName in services:
-          servCls = load_object(servClsName)
-          self.putChild(servName, servCls(self))
+            servCls = load_object(servClsName)
+            self.putChild(servName, servCls(self))
         self.update_projects()
 
     def update_projects(self):
@@ -95,7 +95,7 @@ monitoring)</p>
 </body>
 </html>
 """ % vars
-        return s
+        return s.encode(encoding='utf_8')
 
 class Jobs(resource.Resource):
 
@@ -148,4 +148,4 @@ class Jobs(resource.Resource):
         s += "</table>"
         s += "</body>"
         s += "</html>"
-        return s
+        return s.encode('utf_8')

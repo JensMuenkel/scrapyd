@@ -1,14 +1,16 @@
 import sys
 import os
+from contextlib import suppress
 from .sqlite import JsonSqliteDict
 from subprocess import Popen, PIPE
 from six import iteritems
-from six.moves.configparser import NoSectionError
+from six.moves.configparser import *
+
 import json
 from twisted.web import resource
 
 from scrapyd.spiderqueue import SqliteSpiderQueue
-from scrapy.utils.python import to_native_str
+from scrapy.utils.python import to_bytes, to_unicode, to_native_str
 from scrapyd.config import Config
 
 
@@ -27,7 +29,7 @@ class JsonResource(resource.Resource):
         txrequest.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE')
         txrequest.setHeader('Access-Control-Allow-Headers',' X-Requested-With')
         txrequest.setHeader('Content-Length', len(r))
-        return r
+        return r.encode('utf-8')
 
 class UtilsCache:
     # array of project name that need to be invalided
@@ -39,13 +41,16 @@ class UtilsCache:
     # Invalid the spider's list's cache of a given project (by name)
     @staticmethod
     def invalid_cache(project):
-        UtilsCache.invalid_cached_projects.append(project)
+        invalid_projs=UtilsCache.invalid_cached_projects
+        if len(invalid_projs) >=0 and project not in invalid_projs:
+            invalid_projs.append(project)
 
     def __getitem__(self, key):
-        for p in UtilsCache.invalid_cached_projects:
-            if p in self.cache_manager:
-                del self.cache_manager[p]
-        UtilsCache.invalid_cached_projects[:] = []
+        if len(UtilsCache.invalid_cached_projects)>0:
+            for p in UtilsCache.invalid_cached_projects:
+                if p in self.cache_manager:
+                    del self.cache_manager[p]
+            UtilsCache.invalid_cached_projects[:] = []
         return self.cache_manager[key]
 
     def __setitem__(self, key, value):
@@ -108,12 +113,14 @@ def get_crawl_args(message):
 
 def get_spider_list(project, runner=None, pythonpath=None, version=''):
     """Return the spider list from the given project, using the given runner"""
-    if "cache" not in get_spider_list.__dict__:
-        get_spider_list.cache = UtilsCache()
     try:
-        return get_spider_list.cache[project][version]
-    except KeyError:
-        pass
+        cache=getattr(get_spider_list,"cache")
+    except AttributeError:
+        get_spider_list.cache = UtilsCache()
+    with suppress(KeyError):
+        versionCache= get_spider_list.cache[project]
+        spiders = versionCache[version]
+        return spiders
     if runner is None:
         runner = Config().get('runner')
     env = os.environ.copy()
@@ -126,9 +133,17 @@ def get_spider_list(project, runner=None, pythonpath=None, version=''):
     pargs = [sys.executable, '-m', runner, 'list']
     proc = Popen(pargs, stdout=PIPE, stderr=PIPE, env=env)
     out, err = proc.communicate()
+    print (err)
     if proc.returncode:
-        msg = err or out or 'unknown error'
-        raise RuntimeError(msg.splitlines()[-1])
+        msgUnicode=to_unicode(err)
+        if '[Errno 2]' in msgUnicode:
+            if '' is version:
+                return 'The project - {} - does not exist'.format(project)
+            else:
+                return 'The requested version - {} - and/or the project - {} - does not exist'.format(version, project)
+        else: 
+            msg = err or out or 'unknown error'
+            raise RuntimeError(msg.splitlines()[-1])
     # FIXME: can we reliably decode as UTF-8?
     # scrapy list does `print(list)`
     tmp = out.decode('utf-8').splitlines();
