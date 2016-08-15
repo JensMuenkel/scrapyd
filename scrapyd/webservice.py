@@ -113,12 +113,15 @@ class ListSpiders(WsResource):
 class ListJobs(WsResource):
 
     def render_GET(self, txrequest):
-        project = txrequest.args['project'][0]
+        project = to_unicode(txrequest.args[b'project'][0])
         spiders = self.root.launcher.processes.values()
         running = [{"id": s.job, "spider": s.spider,
             "start_time": s.start_time.isoformat(' ')} for s in spiders if s.project == project]
-        queue = self.root.poller.queues[project]
-        pending = [{"id": x["_job"], "spider": x["name"]} for x in queue.list()]
+        try:
+            queue = self.root.poller.queues[project]
+            pending = [{"id": x["_job"], "spider": x["name"]} for x in queue.list()]
+        except KeyError:
+            pending=[]
         finished = [{"id": s.job, "spider": s.spider,
             "start_time": s.start_time.isoformat(' '),
             "end_time": s.end_time.isoformat(' ')} for s in self.root.launcher.finished
