@@ -27,7 +27,7 @@ setup_args = {
     'zip_safe': False,
     'classifiers': [
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Development Status :: 5 - Production/Stable',
@@ -39,7 +39,7 @@ setup_args = {
 
 
 if using_setuptools:
-    setup_args['install_requires'] = ['Twisted>=8.0', 'Scrapy>=0.17', 'six']
+    setup_args['install_requires'] = ['Twisted>=16.3.0', 'Scrapy>=1.1.1', 'six']
     setup_args['entry_points'] = {'console_scripts': [
         'scrapyd = scrapyd.scripts.scrapyd_run:main'
     ]}

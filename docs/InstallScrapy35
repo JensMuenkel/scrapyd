@@ -1,0 +1,15 @@
+//evading Failed building wheel for cryptography error
+sudo apt-get install build-essential libssl-dev libffi-dev python3.5-dev
+//evading PermissionError: [Errno 13] Permiso denegado: '/usr/local/lib/python3.5/dist-packages/zope.interface-4.2.0-nspkg.pth'
+sudo -H python3.5 -m pip install scrapy
+//Installar Node.js
+
+create user scrapyd:nogroup
+
+create folders (for user scrapyd):
+
+etc/scrapyd/conf.d
+eggs_dir   = /var/lib/scrapyd/eggs
+dbs_dir    = /var/lib/scrapyd/dbs
+items_dir  = /var/lib/scrapyd/items
+logs_dir   = /var/log/scrapyd
