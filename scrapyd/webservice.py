@@ -58,8 +58,8 @@ class Cancel(WsResource):
 
     def render_POST(self, txrequest):
         args = dict((k, v[0]) for k, v in txrequest.args.items())
-        project = args['project']
-        jobid = args['job']
+        project = to_unicode(args[b'project'])
+        jobid = to_unicode(args[b'job'])
         signal = args.get('signal', 'TERM')
         prevstate = None
         queue = self.root.poller.queues[project]
