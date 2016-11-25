@@ -40,11 +40,11 @@ class Schedule(WsResource):
 
     def render_POST(self, txrequest):
         settings = txrequest.args.pop(b'setting', [])
-        settings = dict(x.split('=', 1) for x in settings)
-        args = dict((k, v[0]) for k, v in txrequest.args.items())
-        project = to_unicode(args.pop(b'project'))
-        spider = to_unicode(args.pop(b'spider'))
-        version = to_unicode(args.get(b'_version', b''))
+        settings = dict(to_unicode(x).split('=', 1) for x in settings)
+        args = dict((to_unicode(k), to_unicode(v[0])) for k, v in txrequest.args.items())
+        project = to_unicode(args.pop('project'))
+        spider = to_unicode(args.pop('spider'))
+        version = to_unicode(args.get('_version', ''))
         spiders = get_spider_list(project, version=version)
         if not spider in spiders:
             return {"status": "error", "message": "spider '%s' not found" % spider}
