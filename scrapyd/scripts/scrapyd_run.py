@@ -3,7 +3,10 @@
 from twisted.scripts.twistd import run
 from os.path import join, dirname
 from sys import argv
+import sys
+sys.path.append('/opt/scrapyd')
 import scrapyd
+
 
 
 def main():
